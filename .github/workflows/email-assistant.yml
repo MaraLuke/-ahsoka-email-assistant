@@ -23,5 +23,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run mail.py
-        run: python mail.py
+           - name: Run mail.py
+        run: python app/mail.py
+
