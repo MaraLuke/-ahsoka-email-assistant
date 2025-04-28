@@ -19,6 +19,11 @@ def fetch_emails(days=3):
         date = (datetime.date.today() - datetime.timedelta(days=days)).strftime("%d-%b-%Y")
         status, data = mail.search(None, f'(SINCE "{date}")')
 
+        if status != "OK" or not data or not data[0]:
+            print("📭 Žádné nové e-maily nenalezeny.")
+            mail.logout()
+            return []
+
         for num in data[0].split():
             status, msg_data = mail.fetch(num, "(RFC822)")
             raw_email = msg_data[0][1]
@@ -47,7 +52,7 @@ def fetch_emails(days=3):
                 "from": from_,
                 "subject": subject,
                 "date": date_,
-                "body": body[:1000]  # omezit délku
+                "body": body[:1000]  # Omezit délku textu
             })
 
         mail.logout()
@@ -60,7 +65,7 @@ def delete_email(uid):
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
         mail.login(USERNAME, PASSWORD)
         mail.select("inbox")
-        mail.store(uid, "+FLAGS", "\Deleted")
+        mail.store(uid, "+FLAGS", "\\Deleted")
         mail.expunge()
         mail.logout()
         return {"status": "deleted", "uid": uid}
@@ -72,7 +77,7 @@ def star_email(uid):
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
         mail.login(USERNAME, PASSWORD)
         mail.select("inbox")
-        mail.store(uid, "+FLAGS", "\Flagged")
+        mail.store(uid, "+FLAGS", "\\Flagged")
         mail.logout()
         return {"status": "starred", "uid": uid}
     except Exception as e:
@@ -84,7 +89,7 @@ def send_reply(uid, reply_text):
         msg.set_content(reply_text)
         msg["Subject"] = "Re: automatická odpověď"
         msg["From"] = USERNAME
-        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # bude třeba doplnit dynamicky
+        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále nutné dynamicky doplnit adresáta!
 
         with smtplib.SMTP_SSL(SMTP_SERVER, 465) as server:
             server.login(USERNAME, PASSWORD)
