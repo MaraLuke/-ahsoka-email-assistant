@@ -29,6 +29,9 @@ def fetch_emails(days=3):
             raw_email = msg_data[0][1]
             msg = email.message_from_bytes(raw_email)
 
+            # 🔥 DEBUG: vypíšeme všechny důležité hlavičky
+            print(f"🛠 DEBUG UID {num.decode()}: Subject={msg.get('Subject')}, From={msg.get('From')}, Date={msg.get('Date')}")
+
             # Bezpečné získání předmětu
             subject_header = msg.get("Subject")
             if subject_header:
@@ -40,7 +43,6 @@ def fetch_emails(days=3):
             else:
                 subject = "(bez předmětu)"
 
-            # Bezpečné získání odesílatele a data
             from_ = str(msg.get("From") or "(neznámý odesílatel)")
             date_ = str(msg.get("Date") or "(neznámé datum)")
 
@@ -75,8 +77,7 @@ def fetch_emails(days=3):
 
         mail.logout()
 
-        # ➡️ DEBUG výpis do logu
-        print("🛠 DEBUG - vrácené zprávy:", messages)
+        print("🛠 DEBUG - všechny načtené zprávy:", messages)
 
         return messages
     except Exception as e:
@@ -112,7 +113,7 @@ def send_reply(uid, reply_text):
         msg.set_content(reply_text)
         msg["Subject"] = "Re: automatická odpověď"
         msg["From"] = USERNAME
-        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále nutné dynamicky doplnit
+        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # stále nutné doplnit dynamicky
 
         with smtplib.SMTP_SSL(SMTP_SERVER, 465) as server:
             server.login(USERNAME, PASSWORD)
