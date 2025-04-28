@@ -63,19 +63,24 @@ def fetch_emails(days=3):
                 except Exception:
                     body = ""
 
-            body = str(body or "")  # zajistit že tělo je vždy string
+            body = str(body or "")
 
             messages.append({
                 "uid": num.decode(),
                 "from": from_,
                 "subject": subject,
                 "date": date_,
-                "body": body[:1000]  # Omezit délku textu
+                "body": body[:1000]
             })
 
         mail.logout()
+
+        # ➡️ DEBUG výpis do logu
+        print("🛠 DEBUG - vrácené zprávy:", messages)
+
         return messages
     except Exception as e:
+        print("🛠 DEBUG - chyba při fetchi:", e)
         return {"error": str(e)}
 
 def delete_email(uid):
@@ -107,7 +112,7 @@ def send_reply(uid, reply_text):
         msg.set_content(reply_text)
         msg["Subject"] = "Re: automatická odpověď"
         msg["From"] = USERNAME
-        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále potřeba dynamicky řešit příjemce
+        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále nutné dynamicky doplnit
 
         with smtplib.SMTP_SSL(SMTP_SERVER, 465) as server:
             server.login(USERNAME, PASSWORD)
