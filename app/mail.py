@@ -1,3 +1,4 @@
+import os
 import imaplib, smtplib, email
 from email.header import decode_header
 from email.message import EmailMessage
@@ -5,8 +6,8 @@ import datetime
 
 IMAP_SERVER = "imap.seznam.cz"
 SMTP_SERVER = "smtp.seznam.cz"
-USERNAME = "martin.danek@advamat.cz"
-PASSWORD = "ZDE_ZADEJ_HESLO"  # Při ostrém nasazení načítat z prostředí!
+USERNAME = os.getenv("EMAIL_USER")
+PASSWORD = os.getenv("EMAIL_PASS")
 
 def fetch_emails(days=3):
     messages = []
