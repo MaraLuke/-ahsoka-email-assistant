@@ -29,23 +29,36 @@ def fetch_emails(days=3):
             raw_email = msg_data[0][1]
             msg = email.message_from_bytes(raw_email)
 
-            subject, encoding = decode_header(msg["Subject"])[0]
-            if isinstance(subject, bytes):
-                subject = subject.decode(encoding or "utf-8", errors="ignore")
+            # Bezpečné získání předmětu
+            subject_header = msg["Subject"]
+            if subject_header:
+                subject, encoding = decode_header(subject_header)[0]
+                if isinstance(subject, bytes):
+                    subject = subject.decode(encoding or "utf-8", errors="ignore")
+            else:
+                subject = "(bez předmětu)"
 
-            from_ = msg.get("From")
-            date_ = msg.get("Date")
+            from_ = msg.get("From") or "(neznámý odesílatel)"
+            date_ = msg.get("Date") or "(neznámé datum)"
 
+            # Zpracování těla zprávy
+            body = ""
             if msg.is_multipart():
                 for part in msg.walk():
                     content_type = part.get_content_type()
                     if content_type == "text/plain":
-                        body = part.get_payload(decode=True).decode(errors="ignore")
-                        break
+                        try:
+                            body = part.get_payload(decode=True).decode(errors="ignore")
+                            break
+                        except Exception:
+                            body = ""
                 else:
                     body = ""
             else:
-                body = msg.get_payload(decode=True).decode(errors="ignore")
+                try:
+                    body = msg.get_payload(decode=True).decode(errors="ignore")
+                except Exception:
+                    body = ""
 
             messages.append({
                 "uid": num.decode(),
@@ -89,7 +102,7 @@ def send_reply(uid, reply_text):
         msg.set_content(reply_text)
         msg["Subject"] = "Re: automatická odpověď"
         msg["From"] = USERNAME
-        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále nutné dynamicky doplnit adresáta!
+        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále potřeba dynamicky vyřešit
 
         with smtplib.SMTP_SSL(SMTP_SERVER, 465) as server:
             server.login(USERNAME, PASSWORD)
