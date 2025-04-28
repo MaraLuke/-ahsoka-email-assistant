@@ -26,13 +26,17 @@ def fetch_emails(days=3):
 
         for num in data[0].split():
             status, msg_data = mail.fetch(num, "(RFC822)")
+
+            # 🔥 Nová bezpečnostní kontrola
+            if not msg_data or not msg_data[0] or not msg_data[0][1]:
+                print(f"🛠 DEBUG - Přeskočen UID {num.decode()} kvůli prázdnému fetchi")
+                continue
+
             raw_email = msg_data[0][1]
             msg = email.message_from_bytes(raw_email)
 
-            # 🔥 DEBUG: vypíšeme všechny důležité hlavičky
             print(f"🛠 DEBUG UID {num.decode()}: Subject={msg.get('Subject')}, From={msg.get('From')}, Date={msg.get('Date')}")
 
-            # Bezpečné získání předmětu
             subject_header = msg.get("Subject")
             if subject_header:
                 decoded_subject, encoding = decode_header(subject_header)[0]
@@ -46,7 +50,6 @@ def fetch_emails(days=3):
             from_ = str(msg.get("From") or "(neznámý odesílatel)")
             date_ = str(msg.get("Date") or "(neznámé datum)")
 
-            # Zpracování těla zprávy
             body = ""
             if msg.is_multipart():
                 for part in msg.walk():
@@ -113,7 +116,7 @@ def send_reply(uid, reply_text):
         msg.set_content(reply_text)
         msg["Subject"] = "Re: automatická odpověď"
         msg["From"] = USERNAME
-        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # stále nutné doplnit dynamicky
+        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"
 
         with smtplib.SMTP_SSL(SMTP_SERVER, 465) as server:
             server.login(USERNAME, PASSWORD)
