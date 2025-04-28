@@ -30,16 +30,19 @@ def fetch_emails(days=3):
             msg = email.message_from_bytes(raw_email)
 
             # Bezpečné získání předmětu
-            subject_header = msg["Subject"]
+            subject_header = msg.get("Subject")
             if subject_header:
-                subject, encoding = decode_header(subject_header)[0]
-                if isinstance(subject, bytes):
-                    subject = subject.decode(encoding or "utf-8", errors="ignore")
+                decoded_subject, encoding = decode_header(subject_header)[0]
+                if isinstance(decoded_subject, bytes):
+                    subject = decoded_subject.decode(encoding or "utf-8", errors="ignore")
+                else:
+                    subject = str(decoded_subject)
             else:
                 subject = "(bez předmětu)"
 
-            from_ = msg.get("From") or "(neznámý odesílatel)"
-            date_ = msg.get("Date") or "(neznámé datum)"
+            # Bezpečné získání odesílatele a data
+            from_ = str(msg.get("From") or "(neznámý odesílatel)")
+            date_ = str(msg.get("Date") or "(neznámé datum)")
 
             # Zpracování těla zprávy
             body = ""
@@ -59,6 +62,8 @@ def fetch_emails(days=3):
                     body = msg.get_payload(decode=True).decode(errors="ignore")
                 except Exception:
                     body = ""
+
+            body = str(body or "")  # zajistit že tělo je vždy string
 
             messages.append({
                 "uid": num.decode(),
@@ -102,7 +107,7 @@ def send_reply(uid, reply_text):
         msg.set_content(reply_text)
         msg["Subject"] = "Re: automatická odpověď"
         msg["From"] = USERNAME
-        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále potřeba dynamicky vyřešit
+        msg["To"] = "ZDE_ZADEJ_ADRESÁTA"  # POZOR: stále potřeba dynamicky řešit příjemce
 
         with smtplib.SMTP_SSL(SMTP_SERVER, 465) as server:
             server.login(USERNAME, PASSWORD)
