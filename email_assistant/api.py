@@ -1,3 +1,5 @@
+import sys, pprint
+pprint.pprint(sys.modules.get(__name__).__dict__.keys())
 from typing import List, Optional, Iterable
 from fastapi import FastAPI, Depends, HTTPException
 from .client import EmailClient
