@@ -1,3 +1,4 @@
+from typing import List, Optional, Iterable
 from fastapi import FastAPI, Depends, HTTPException
 from .client import EmailClient
 from .settings import Settings
@@ -8,9 +9,10 @@ app = FastAPI(title="Seznam Email Assistant")
 def get_client(cfg: Settings = Depends(Settings)):
     return EmailClient(cfg)
 
-@app.get("/emails", response_model=list[EmailOut])
+@app.get("/emails", response_model=List[EmailOut])
 def list_emails(days: int = 3, client: EmailClient = Depends(get_client)):
     return client.fetch(days)
+
 
 @app.delete("/emails/{uid}")
 def delete_email(uid: str, client: EmailClient = Depends(get_client)):
