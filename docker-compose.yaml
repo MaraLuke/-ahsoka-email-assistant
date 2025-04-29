@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  email_assistant:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
